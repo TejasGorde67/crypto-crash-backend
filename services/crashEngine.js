@@ -10,7 +10,7 @@ const generateCrashPoint = (seed, roundNumber) => {
     .update(seed + roundNumber)
     .digest("hex");
   const hashInt = parseInt(hash.slice(0, 8), 16);
-  return parseFloat((1 + (hashInt % 10000) / 100).toFixed(2)); // e.g., 1.00x – 101.00x
+  return parseFloat((1 + (hashInt % 10000) / 100).toFixed(2));
 };
 
 const startCrashRound = (io) => {
@@ -24,7 +24,7 @@ const startCrashRound = (io) => {
     currentMultiplier = 1.0;
     roundInProgress = true;
 
-    console.log(`🌀 Starting round ${roundNumber}, crash at ${crashPoint}x`);
+    console.log(` Starting round ${roundNumber}, crash at ${crashPoint}x`);
     io.emit("round_start", { roundNumber, crashPoint });
 
     interval = setInterval(() => {
@@ -34,7 +34,7 @@ const startCrashRound = (io) => {
       if (currentMultiplier >= crashPoint) {
         clearInterval(interval);
         roundInProgress = false;
-        console.log(`💥 Round ${roundNumber} crashed at ${crashPoint}x`);
+        console.log(` Round ${roundNumber} crashed at ${crashPoint}x`);
         io.emit("round_crash", crashPoint.toFixed(2));
         roundNumber++;
       }

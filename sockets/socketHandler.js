@@ -4,7 +4,6 @@ let gameInterval;
 let round = 1;
 
 function generateCrashPoint() {
-  // Random crash point between 1.5x and 100x
   return (Math.random() * 98 + 1.5).toFixed(2);
 }
 
@@ -26,9 +25,9 @@ module.exports = (io) => {
         setTimeout(() => {
           round++;
           startGameRound();
-        }, 3000); // 3s pause before next round
+        }, 3000);
       }
-    }, 100); // Update every 100ms
+    }, 100);
   }
 
   io.on("connection", (socket) => {
@@ -36,5 +35,5 @@ module.exports = (io) => {
     socket.emit("multiplier", currentMultiplier);
   });
 
-  startGameRound(); // Kick off the first round when server starts
+  startGameRound();
 };

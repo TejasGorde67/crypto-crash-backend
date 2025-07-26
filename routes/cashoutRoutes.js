@@ -9,9 +9,22 @@ router.post("/cashout", async (req, res) => {
   try {
     const { username, cryptoAmount, multiplier, currency } = req.body;
 
+    if (!username || !cryptoAmount || !multiplier || !currency) {
+      return res.status(400).json({ msg: "Missing required fields" });
+    }
+
     const prices = await getPrices();
     const price = prices[currency];
-    const usdReturned = cryptoAmount * price * multiplier;
+
+    if (!price || isNaN(price)) {
+      return res.status(400).json({ msg: "Invalid crypto price" });
+    }
+
+    const usdReturned = cryptoAmount * multiplier * price;
+
+    if (isNaN(usdReturned)) {
+      return res.status(400).json({ msg: "Invalid USD calculation" });
+    }
 
     const player = await Player.findOne({ username });
     if (!player) return res.status(404).json({ msg: "Player not found" });

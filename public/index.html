@@ -4,7 +4,7 @@
     <title>Crypto Crash Multiplier</title>
   </head>
   <body>
-    <h1>🚀 Live Multiplier: <span id="multiplier">1.00x</span></h1>
+    <h1>Live Multiplier: <span id="multiplier">1.00x</span></h1>
     <h3 id="crash"></h3>
 
     <script src="/socket.io/socket.io.js"></script>
@@ -16,7 +16,7 @@
       });
 
       socket.on("crash", (data) => {
-        document.getElementById("crash").innerText = `💥 Crashed at ${data}x`;
+        document.getElementById("crash").innerText = ` Crashed at ${data}x`;
       });
     </script>
   </body>
