@@ -1,0 +1,41 @@
+const express = require("express");
+const router = express.Router();
+const Player = require("../models/Player");
+const Transaction = require("../models/Transaction");
+const { getPrices } = require("../services/cryptoService");
+const crypto = require("crypto");
+
+router.post("/cashout", async (req, res) => {
+  try {
+    const { username, cryptoAmount, multiplier, currency } = req.body;
+
+    const prices = await getPrices();
+    const price = prices[currency];
+    const usdReturned = cryptoAmount * price * multiplier;
+
+    const player = await Player.findOne({ username });
+    if (!player) return res.status(404).json({ msg: "Player not found" });
+
+    player.wallet[currency] += cryptoAmount;
+    await player.save();
+
+    const txHash = crypto.randomBytes(8).toString("hex");
+
+    await Transaction.create({
+      playerId: player._id,
+      usdAmount: usdReturned,
+      cryptoAmount,
+      currency,
+      transactionType: "cashout",
+      transactionHash: txHash,
+      priceAtTime: price,
+    });
+
+    return res.json({ msg: "Cashout successful", usdReturned, txHash });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ msg: "Server error" });
+  }
+});
+
+module.exports = router;
