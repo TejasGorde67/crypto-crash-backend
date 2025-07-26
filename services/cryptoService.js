@@ -1,36 +1,16 @@
-// const axios = require("axios");
-
-// let cachedPrices = {};
-// let lastFetchTime = 0;
-
-// const getPrices = async () => {
-//   const now = Date.now();
-//   if (now - lastFetchTime < 10000 && cachedPrices.BTC && cachedPrices.ETH) {
-//     return cachedPrices;
-//   }
-
-//   try {
-//     const res = await axios.get(
-//       "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd"
-//     );
-//     cachedPrices = {
-//       BTC: res.data.bitcoin.usd,
-//       ETH: res.data.ethereum.usd,
-//     };
-//     lastFetchTime = now;
-//     return cachedPrices;
-//   } catch (err) {
-//     console.error("Price fetch failed. Using last cache.");
-//     return cachedPrices;
-//   }
-// };
-
-// module.exports = { getPrices };
-
-// cryptoService.js
 const axios = require("axios");
 
+let cachedPrices = null;
+let lastFetched = 0;
+
 async function getPrices() {
+  const now = Date.now();
+  const tenSeconds = 10 * 1000;
+
+  if (cachedPrices && now - lastFetched < tenSeconds) {
+    return cachedPrices;
+  }
+
   try {
     const res = await axios.get(
       "https://api.coingecko.com/api/v3/simple/price",
@@ -42,14 +22,16 @@ async function getPrices() {
       }
     );
 
-    console.log("✅ CoinGecko API response:", res.data); // <--- add this
-    return {
+    cachedPrices = {
       BTC: res.data.bitcoin?.usd,
       ETH: res.data.ethereum?.usd,
     };
+    lastFetched = now;
+    console.log("✅ Fetched fresh prices:", cachedPrices);
+    return cachedPrices;
   } catch (err) {
-    console.error("❌ Error fetching prices from CoinGecko:", err.message); // <--- and this
-    return {};
+    console.error("❌ Error fetching prices from CoinGecko:", err.message);
+    return cachedPrices || {}; // fallback to last known prices or empty
   }
 }
 
