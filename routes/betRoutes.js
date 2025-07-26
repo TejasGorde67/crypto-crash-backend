@@ -10,7 +10,18 @@ router.post("/bet", async (req, res) => {
     const { username, usdAmount, currency } = req.body;
     const prices = await getPrices();
     const price = prices[currency];
+
+    if (!price || isNaN(price)) {
+      return res.status(400).json({ msg: "Invalid or missing crypto price" });
+    }
+
     const cryptoAmount = usdAmount / price;
+
+    if (isNaN(cryptoAmount)) {
+      return res
+        .status(400)
+        .json({ msg: "Calculated crypto amount is invalid" });
+    }
 
     const player = await Player.findOne({ username });
     if (!player) return res.status(404).json({ msg: "Player not found" });
