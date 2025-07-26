@@ -52,4 +52,10 @@ router.post("/bet", async (req, res) => {
   }
 });
 
+router.get("/test-prices", async (req, res) => {
+  const prices = await getPrices();
+  console.log("Prices fetched:", prices);
+  res.json(prices);
+});
+
 module.exports = router;
