@@ -15,6 +15,10 @@ async function getPrices() {
     const res = await axios.get(
       "https://api.coingecko.com/api/v3/simple/price",
       {
+        headers: {
+          "User-Agent":
+            "CryptoCrashGame/1.0 (https://github.com/TejasGorde67/crypto-crash-backend)",
+        },
         params: {
           ids: "bitcoin,ethereum",
           vs_currencies: "usd",
