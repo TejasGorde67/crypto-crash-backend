@@ -30,25 +30,27 @@
 // cryptoService.js
 const axios = require("axios");
 
-let cache = {};
-
-const getPrices = async () => {
+async function getPrices() {
   try {
     const res = await axios.get(
-      "https://api.coingecko.com/api/v3/simple/price?ids=bitcoin,ethereum&vs_currencies=usd"
+      "https://api.coingecko.com/api/v3/simple/price",
+      {
+        params: {
+          ids: "bitcoin,ethereum",
+          vs_currencies: "usd",
+        },
+      }
     );
-    const data = res.data;
 
-    cache = {
-      BTC: data.bitcoin.usd,
-      ETH: data.ethereum.usd,
+    console.log("✅ CoinGecko API response:", res.data); // <--- add this
+    return {
+      BTC: res.data.bitcoin?.usd,
+      ETH: res.data.ethereum?.usd,
     };
-
-    return cache;
-  } catch (error) {
-    console.error("Price fetch failed. Using last cache.");
-    return cache;
+  } catch (err) {
+    console.error("❌ Error fetching prices from CoinGecko:", err.message); // <--- and this
+    return {};
   }
-};
+}
 
 module.exports = { getPrices };
