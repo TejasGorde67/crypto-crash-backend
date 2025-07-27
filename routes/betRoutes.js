@@ -1,3 +1,6 @@
+const express = require("express");
+const router = express.Router();
+
 router.post("/bet", async (req, res) => {
   try {
     const { username, usdAmount, currency } = req.body;
