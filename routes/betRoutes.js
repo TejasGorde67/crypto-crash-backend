@@ -8,8 +8,12 @@ const crypto = require("crypto");
 router.post("/bet", async (req, res) => {
   try {
     const { username, usdAmount, currency } = req.body;
+    console.log("Request body:", req.body);
+
     const prices = await getPrices();
+    console.log("Fetched prices:", prices);
     const price = prices[currency];
+    console.log("Selected price for", currency, ":", price);
 
     if (!price || isNaN(price)) {
       return res.status(400).json({ msg: "Invalid or missing crypto price" });
