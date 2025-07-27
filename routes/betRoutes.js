@@ -1,19 +1,15 @@
-const express = require("express");
-const router = express.Router();
-const Player = require("../models/Player");
-const Transaction = require("../models/Transaction");
-const { getPrices } = require("../services/cryptoService");
-const crypto = require("crypto");
-
 router.post("/bet", async (req, res) => {
   try {
     const { username, usdAmount, currency } = req.body;
-    console.log("Request body:", req.body);
+
+    console.log("🟡 Request body:", req.body);
 
     const prices = await getPrices();
-    console.log("Fetched prices:", prices);
+
+    console.log("🔵 Prices fetched from getPrices():", prices);
     const price = prices[currency];
-    console.log("Selected price for", currency, ":", price);
+
+    console.log(`🟢 Selected price for ${currency}:`, price);
 
     if (!price || isNaN(price)) {
       return res.status(400).json({ msg: "Invalid or missing crypto price" });
@@ -55,11 +51,3 @@ router.post("/bet", async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 });
-
-router.get("/test-prices", async (req, res) => {
-  const prices = await getPrices();
-  console.log("Prices fetched:", prices);
-  res.json(prices);
-});
-
-module.exports = router;
