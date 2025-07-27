@@ -1,5 +1,9 @@
 const express = require("express");
 const router = express.Router();
+const Player = require("../models/Player");
+const Transaction = require("../models/Transaction");
+const { getPrices } = require("../services/cryptoService");
+const crypto = require("crypto");
 
 router.post("/bet", async (req, res) => {
   try {
@@ -54,3 +58,5 @@ router.post("/bet", async (req, res) => {
     res.status(500).json({ msg: "Server error" });
   }
 });
+
+module.exports = router;
