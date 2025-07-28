@@ -1,49 +1,51 @@
-const mongoose = require("mongoose");
+const express = require("express");
+const router = express.Router();
+const Round = require("../models/Round");
 
-const RoundSchema = new mongoose.Schema({
-  roundId: {
-    type: String,
-    required: true,
-    unique: true,
-  },
-  startTime: {
-    type: Date,
-    default: Date.now,
-  },
-  crashPoint: {
-    type: Number,
-    required: true,
-  },
-  status: {
-    type: String,
-    enum: ["waiting", "running", "crashed"],
-    default: "waiting",
-  },
-  bets: [
-    {
-      username: String,
-      usdAmount: Number,
-      cryptoAmount: Number,
-      currency: String,
-      placedAt: Date,
-    },
-  ],
-  cashouts: [
-    {
-      username: String,
-      multiplier: Number,
-      cashedOutAt: Date,
-      cryptoAmountWon: Number,
-    },
-  ],
-  seed: {
-    type: String,
-    required: true,
-  },
-  hash: {
-    type: String,
-    required: true,
-  },
+router.post("/", async (req, res) => {
+  try {
+    const { username, usdAmount, cryptoAmount, currency } = req.body;
+
+    // Get the latest round that's running or waiting
+    const currentRound = await Round.findOne({
+      status: { $in: ["waiting", "running"] },
+    }).sort({ startTime: -1 });
+
+    if (!currentRound) {
+      return res.status(400).json({ error: "No active round found." });
+    }
+
+    // Prevent duplicate bet by same user
+    const existingBet = currentRound.bets.find(
+      (bet) => bet.username === username
+    );
+    if (existingBet) {
+      return res
+        .status(400)
+        .json({ error: "You already placed a bet in this round." });
+    }
+
+    // Add bet to current round
+    currentRound.bets.push({
+      username,
+      usdAmount,
+      cryptoAmount,
+      currency,
+      placedAt: new Date(),
+    });
+
+    await currentRound.save();
+
+    res
+      .status(200)
+      .json({
+        message: "Bet placed successfully",
+        roundId: currentRound.roundId,
+      });
+  } catch (err) {
+    console.error("Bet Error:", err);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
 });
 
-module.exports = mongoose.model("Round", RoundSchema);
+module.exports = router;

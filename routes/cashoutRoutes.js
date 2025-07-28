@@ -1,53 +1,48 @@
 const express = require("express");
 const router = express.Router();
-const Player = require("../models/Player");
-const Transaction = require("../models/Transaction");
-const { getPrices } = require("../services/cryptoService");
-const crypto = require("crypto");
+const Round = require("../../models/Round");
 
-router.post("/cashout", async (req, res) => {
+router.post("/", async (req, res) => {
   try {
-    const { username, cryptoAmount, multiplier, currency } = req.body;
+    const { username } = req.body;
 
-    if (!username || !cryptoAmount || !multiplier || !currency) {
-      return res.status(400).json({ msg: "Missing required fields" });
+    const multiplier = global.currentMultiplier;
+    const roundId = global.currentRoundId;
+
+    if (!multiplier || !roundId) {
+      return res.status(400).json({ error: "No round in progress." });
     }
 
-    const prices = await getPrices();
-    const price = prices[currency];
-
-    if (!price || isNaN(price)) {
-      return res.status(400).json({ msg: "Invalid crypto price" });
+    const round = await Round.findById(roundId);
+    if (!round) {
+      return res.status(404).json({ error: "Round not found" });
     }
 
-    const usdReturned = cryptoAmount * multiplier * price;
-
-    if (isNaN(usdReturned)) {
-      return res.status(400).json({ msg: "Invalid USD calculation" });
+    const bet = round.bets.find((b) => b.username === username);
+    if (!bet) {
+      return res.status(404).json({ error: "Bet not found for user" });
     }
 
-    const player = await Player.findOne({ username });
-    if (!player) return res.status(404).json({ msg: "Player not found" });
+    const wonAmount = parseFloat((bet.cryptoAmount * multiplier).toFixed(8));
 
-    player.wallet[currency] += cryptoAmount;
-    await player.save();
-
-    const txHash = crypto.randomBytes(8).toString("hex");
-
-    await Transaction.create({
-      playerId: player._id,
-      usdAmount: usdReturned,
-      cryptoAmount,
-      currency,
-      transactionType: "cashout",
-      transactionHash: txHash,
-      priceAtTime: price,
+    round.cashouts.push({
+      username,
+      multiplier,
+      cashedOutAt: new Date(),
+      cryptoAmountWon: wonAmount,
     });
 
-    return res.json({ msg: "Cashout successful", usdReturned, txHash });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ msg: "Server error" });
+    await round.save();
+
+    return res.status(200).json({
+      message: "Cashout successful",
+      username,
+      multiplier,
+      cryptoAmountWon: wonAmount,
+    });
+  } catch (error) {
+    console.error("Cashout error:", error);
+    return res.status(500).json({ error: "Internal server error" });
   }
 });
 

@@ -32,22 +32,28 @@ module.exports = function startGameEngine(io) {
 
     // 🧠 Create a new Round in MongoDB
     currentRound = new Round({
-      roundNumber,
+      roundId: `round-${roundNumber}`, // make sure schema uses roundId
       crashPoint,
       startTime: new Date(),
-      serverSeed,
-      crashPointHash: crypto
+      seed: serverSeed,
+      hash: crypto
         .createHash("sha256")
         .update(serverSeed + roundNumber)
         .digest("hex"),
+      status: "running",
     });
+
     await currentRound.save();
+
+    // 🌐 Expose to global so other files (e.g., /api/cashout) can access
+    global.currentMultiplier = currentMultiplier;
+    global.currentRoundId = currentRound._id; // or currentRound.roundId
 
     // 📢 Notify clients a new round has started
     io.emit("gameStarted", {
       roundNumber,
       serverSeed,
-      crashPointHash: currentRound.crashPointHash,
+      crashPointHash: currentRound.hash,
     });
 
     const startTime = Date.now();
@@ -55,6 +61,7 @@ module.exports = function startGameEngine(io) {
     const multiplierInterval = setInterval(async () => {
       const elapsed = (Date.now() - startTime) / 1000;
       currentMultiplier = parseFloat((1 + elapsed * growthRate).toFixed(2));
+      global.currentMultiplier = currentMultiplier; // 🟡 Keep updating global
 
       io.emit("multiplierUpdate", currentMultiplier);
 
@@ -63,8 +70,8 @@ module.exports = function startGameEngine(io) {
         roundInProgress = false;
 
         // 🛑 Game crashed, update round in DB
-        currentRound.endTime = new Date();
-        currentRound.actualCrashPoint = currentMultiplier;
+        currentRound.status = "crashed";
+        currentRound.crashPoint = currentMultiplier;
         await currentRound.save();
 
         io.emit("gameCrashed", {
