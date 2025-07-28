@@ -32,7 +32,7 @@ module.exports = function startGameEngine(io) {
 
     // 🧠 Create a new Round in MongoDB
     currentRound = new Round({
-      roundId: `round-${roundNumber}`, // make sure schema uses roundId
+      roundId: `round-${roundNumber}`,
       crashPoint,
       startTime: new Date(),
       seed: serverSeed,
@@ -47,7 +47,7 @@ module.exports = function startGameEngine(io) {
 
     // 🌐 Expose to global so other files (e.g., /api/cashout) can access
     global.currentMultiplier = currentMultiplier;
-    global.currentRoundId = currentRound._id; // or currentRound.roundId
+    global.currentRoundId = currentRound._id;
 
     // 📢 Notify clients a new round has started
     io.emit("gameStarted", {
@@ -61,7 +61,7 @@ module.exports = function startGameEngine(io) {
     const multiplierInterval = setInterval(async () => {
       const elapsed = (Date.now() - startTime) / 1000;
       currentMultiplier = parseFloat((1 + elapsed * growthRate).toFixed(2));
-      global.currentMultiplier = currentMultiplier; // 🟡 Keep updating global
+      global.currentMultiplier = currentMultiplier;
 
       io.emit("multiplierUpdate", currentMultiplier);
 
