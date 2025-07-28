@@ -5,9 +5,10 @@ let lastFetched = 0;
 
 async function getPrices() {
   const now = Date.now();
-  const cacheDuration = 60 * 1000; // Cache for 60 seconds
+  const cacheDuration = 60 * 1000; // 60 seconds
 
   if (cachedPrices && now - lastFetched < cacheDuration) {
+    console.log("🟢 Returning cached prices:", cachedPrices);
     return cachedPrices;
   }
 
@@ -22,16 +23,21 @@ async function getPrices() {
       }
     );
 
-    cachedPrices = {
-      BTC: res.data.bitcoin?.usd,
-      ETH: res.data.ethereum?.usd,
-    };
+    const BTC = res.data?.bitcoin?.usd;
+    const ETH = res.data?.ethereum?.usd;
+
+    if (!BTC || !ETH) {
+      throw new Error("❌ Missing BTC or ETH in API response");
+    }
+
+    cachedPrices = { BTC, ETH };
     lastFetched = now;
+
     console.log("✅ Fetched fresh prices:", cachedPrices);
     return cachedPrices;
   } catch (err) {
-    console.error("❌ Error fetching prices from CoinGecko:", err.message);
-    return cachedPrices || {}; // return fallback
+    console.error("🔥 Error fetching prices:", err.message);
+    return cachedPrices || { BTC: 30000, ETH: 2000 }; // fallback hardcoded prices
   }
 }
 
