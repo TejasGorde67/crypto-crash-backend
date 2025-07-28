@@ -1,3 +1,5 @@
+const priceRoute = require("./routes/price");
+
 require("dotenv").config();
 const express = require("express");
 const http = require("http");
@@ -23,6 +25,7 @@ const cashoutRoutes = require("./routes/cashoutRoutes");
 
 app.use("/api", betRoutes);
 app.use("/api", cashoutRoutes);
+app.use("/api/price", priceRoute); // ✅ add this line
 
 // DB connection
 mongoose
