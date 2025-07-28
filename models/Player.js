@@ -1,15 +1,18 @@
 const mongoose = require("mongoose");
 
-const playerSchema = new mongoose.Schema(
-  {
-    username: { type: String, required: true, unique: true },
-    wallet: {
-      BTC: { type: Number, default: 0 },
-      ETH: { type: Number, default: 0 },
+const playerSchema = new mongoose.Schema({
+  username: String,
+  balance: Number,
+  currentBet: {
+    amount: Number,
+    currency: String,
+    multiplier: Number,
+    hasCashedOut: {
+      type: Boolean,
+      default: false,
     },
   },
-  { timestamps: true }
-);
+});
 
 module.exports =
-  mongoose.models.ModelName || mongoose.model("ModelName", schema);
+  mongoose.models.Player || mongoose.model("Player", playerSchema);
