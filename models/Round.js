@@ -1,25 +1,21 @@
 const mongoose = require("mongoose");
 
-const roundSchema = new mongoose.Schema(
-  {
-    roundNumber: { type: Number, required: true, unique: true },
-    crashPoint: { type: Number, required: true },
-    seed: { type: String, required: true },
-    bets: [
-      {
-        playerId: String,
-        cryptoAmount: Number,
-        currency: String,
-        usdAmount: Number,
-        cashedOut: Boolean,
-        cashoutMultiplier: Number,
-        cashoutAmount: Number,
-      },
-    ],
-    startedAt: Date,
-    endedAt: Date,
-  },
-  { timestamps: true }
-);
+const roundSchema = new mongoose.Schema({
+  roundId: String,
+  crashPoint: Number,
+  bets: [
+    {
+      playerId: String,
+      username: String,
+      usdAmount: Number,
+      cryptoAmount: Number,
+      currency: String,
+      cashedOut: Boolean,
+      cashoutMultiplier: Number,
+    },
+  ],
+  startTime: Date,
+  endTime: Date,
+});
 
-module.exports = mongoose.model("Round", roundSchema);
+module.exports = mongoose.models.Round || mongoose.model("Round", roundSchema);
